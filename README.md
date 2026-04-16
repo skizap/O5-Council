@@ -1,5 +1,7 @@
 # O5 Council
 
+![O5 Council hero banner](assets/o5_council_hero.png)
+
 **O5 Council** is an open-source Python desktop application that treats AI work as a structured council rather than a one-model chat. A user submits a planning, research, policy, or drafting task, and five configurable models routed through **OpenRouter** deliberate across multiple rounds before producing a final synthesis.
 
 The project is designed as a practical desktop MVP. It focuses on transparency, configurable model selection, and a visible critique-and-revision workflow so the user can inspect how each council member moved toward consensus.
