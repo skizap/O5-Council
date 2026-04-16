@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "o5-council"
+version = "0.1.0"
+description = "A Python desktop application that coordinates five OpenRouter models into a deliberative council."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Tammy" }
+]
+dependencies = [
+  "PySide6>=6.8.0",
+  "httpx>=0.27.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/skizap/O5-Council"
+Documentation = "https://github.com/skizap/O5-Council"
+Issues = "https://github.com/skizap/O5-Council/issues"
+
+[project.scripts]
+o5-council = "o5_council.app:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["o5_council*"]
