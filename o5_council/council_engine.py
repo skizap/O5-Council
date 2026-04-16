@@ -139,6 +139,7 @@ class CouncilEngine:
             temperature=agent.temperature,
         )
         raw_text = self.client.extract_text(response_data)
+        reasoning_text = self._safe_extract_reasoning(response_data)
         cleaned_content, signal = self._extract_signal(raw_text)
         return MemberResponse(
             agent_name=agent.name,
@@ -148,7 +149,17 @@ class CouncilEngine:
             content=cleaned_content,
             signal=signal,
             raw_response=response_data,
+            reasoning=reasoning_text,
         )
+
+    def _safe_extract_reasoning(self, response_data: dict) -> str:
+        extractor = getattr(self.client, "extract_reasoning", None)
+        if not callable(extractor):
+            return ""
+        try:
+            return extractor(response_data) or ""
+        except Exception:
+            return ""
 
     def _build_member_messages(
         self,

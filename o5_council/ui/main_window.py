@@ -411,6 +411,11 @@ class MainWindow(QMainWindow):
     def on_member_update(self, payload: dict[str, Any]) -> None:
         response: MemberResponse = payload["response"]
         index = self._member_index(response.agent_name)
+        reasoning_section = (
+            f"## Reasoning / Thinking\n\n{response.reasoning}\n\n"
+            if response.reasoning
+            else ""
+        )
         summary = (
             f"# {response.agent_name}\n\n"
             f"**Role:** {response.role}  \n"
@@ -419,6 +424,7 @@ class MainWindow(QMainWindow):
             f"**Preferred Option:** {response.signal.preferred_option}  \n"
             f"**Confidence:** {response.signal.confidence}  \n"
             f"**Consensus Ready:** {response.signal.consensus_ready}\n\n"
+            f"{reasoning_section}"
             f"## Response\n\n{response.content}\n\n"
             f"## Key Risks\n\n"
             + ("\n".join(f"- {risk}" for risk in response.signal.key_risks) or "- No risks were explicitly listed.")

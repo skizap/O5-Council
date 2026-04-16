@@ -29,6 +29,7 @@ class MemberResponse:
     content: str
     signal: CouncilSignal
     raw_response: dict[str, Any] = field(default_factory=dict)
+    reasoning: str = ""
 
 
 @dataclass(slots=True)

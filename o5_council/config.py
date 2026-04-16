@@ -31,13 +31,21 @@ DEFAULT_MODELS = [
 COMMON_OPENROUTER_MODELS = [
     "openai/gpt-4.1-mini",
     "openai/gpt-4.1",
+    "anthropic/claude-sonnet-4.6",
     "anthropic/claude-3.7-sonnet",
     "anthropic/claude-3.5-sonnet",
-    "google/gemini-2.5-flash",
+    "google/gemini-3.1-pro-preview",
     "google/gemini-2.5-pro",
-    "meta-llama/llama-4-maverick",
+    "google/gemini-2.5-flash",
+    "deepseek/deepseek-v3.2",
     "deepseek/deepseek-chat-v3-0324",
+    "minimax/minimax-m2.7",
+    "z-ai/glm-5.1",
+    "moonshotai/kimi-k2.5",
+    "x-ai/grok-4.1-fast",
+    "qwen/qwen3.6-plus",
     "qwen/qwen-2.5-72b-instruct",
+    "meta-llama/llama-4-maverick",
     "mistralai/mistral-large",
 ]
 

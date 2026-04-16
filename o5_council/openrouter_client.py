@@ -77,3 +77,24 @@ class OpenRouterClient:
                     parts.append(str(item.get("text", "")))
             return "\n".join(part.strip() for part in parts if part.strip()).strip()
         return str(content).strip()
+
+    @staticmethod
+    def extract_reasoning(response_data: dict[str, Any]) -> str:
+        choice = response_data["choices"][0]
+        message = choice.get("message", {})
+        reasoning = message.get("reasoning")
+        if reasoning is None:
+            return ""
+        if isinstance(reasoning, str):
+            return reasoning.strip()
+        if isinstance(reasoning, list):
+            parts: list[str] = []
+            for item in reasoning:
+                if isinstance(item, dict):
+                    text = item.get("text") or item.get("content") or ""
+                    if text:
+                        parts.append(str(text))
+                elif isinstance(item, str):
+                    parts.append(item)
+            return "\n".join(part.strip() for part in parts if part.strip()).strip()
+        return str(reasoning).strip()
