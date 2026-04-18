@@ -1,0 +1,69 @@
+# O5 Council Test Prompt
+
+The following prompt is designed to test whether the council can handle **trade-offs**, **uncertainty**, **multi-step planning**, **internal disagreement**, and a **clear final recommendation**. It is written so you can paste it directly into the app.
+
+| Use case | What it tests |
+| --- | --- |
+| Strategic planning under constraints | Prioritization and allocation logic |
+| Adversarial internal review | Whether members critique each other rather than merely agree |
+| Consensus formation | Whether the council converges on a usable final position |
+| Structured output quality | Whether the final answer is actionable and readable |
+
+## Paste-Ready Prompt
+
+```text
+You are the O5 Council, a panel of five high-level AI advisors. Your job is not to answer quickly. Your job is to think carefully, disagree where necessary, challenge weak assumptions, and produce the strongest final recommendation you can.
+
+I want you to act as the strategic advisory council for a fictional democratic island nation with the following situation:
+
+- Annual discretionary budget available for new investment: $120 billion
+- Population: 38 million
+- Existing problems: aging infrastructure, weak air defense, rising cyberattacks, housing shortages, and public dissatisfaction with healthcare access
+- External risk: a hostile neighboring power is increasing military pressure in the region
+- Internal constraint: the public will not tolerate an obviously militarized budget that neglects quality of life
+- Political constraint: the government must show measurable progress within 18 months
+- Strategic requirement: the country must remain militarily credible, economically stable, and politically legitimate
+
+Your task is to decide how the $120 billion should be allocated across the following categories:
+
+1. Air and missile defense
+2. Naval defense and coastal security
+3. Cybersecurity and intelligence
+4. Roads, bridges, ports, and energy infrastructure
+5. Housing and urban development
+6. Healthcare access and hospital modernization
+7. Emergency reserves and contingency funding
+
+You must deliberate as a real council.
+
+Requirements:
+
+1. Each council member should first form an independent view.
+2. Then each member should critique the weaknesses, blind spots, and risks in the others' positions.
+3. You should not force consensus too early. If there is disagreement, show it clearly.
+4. After debate, work toward a final consensus allocation plan.
+5. If full consensus is not possible, provide the majority plan and the strongest minority objection.
+6. Do not use vague statements like “balance is important” unless you explain exactly what that means in budget terms.
+7. If you make assumptions, state them explicitly.
+8. If data is missing, do not pretend certainty. Instead, identify uncertainty and show how you would manage it.
+
+The final output must include all of the following sections:
+
+A. Executive Summary
+B. Initial Positions of the Five Council Members
+C. Main Points of Disagreement
+D. Final Budget Allocation Table with dollar amounts and percentages
+E. Why this allocation is strategically superior to the most obvious alternatives
+F. Top 10 risks in the final plan
+G. 18-month action plan
+H. 3-year strategic roadmap
+I. Minority report, if any
+J. Final consensus rating from 1 to 10, with explanation
+
+Additional instruction:
+I am explicitly testing whether you can reason like a serious council rather than a single chatbot. I want visible trade-offs, meaningful criticism, revisions after critique, and a final answer that is specific enough to act on.
+```
+
+## What Good Performance Looks Like
+
+A strong result will show that the council did not merely produce five near-identical opinions. It should surface real tension between defense spending and domestic legitimacy, explain why certain categories receive less funding, and show revision between the initial and final positions. The best answers will also present a coherent allocation table and a practical implementation sequence rather than a generic essay.
