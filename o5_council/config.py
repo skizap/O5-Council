@@ -7,6 +7,7 @@ APP_SLUG = "o5-council"
 APP_TITLE = "O5 Council"
 APP_VERSION = "0.1.0"
 SETTINGS_FILE_NAME = "settings.json"
+HISTORY_FILE_NAME = "run_history.jsonl"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_REFERER = "https://github.com/skizap/O5-Council"
 OPENROUTER_TITLE = "O5 Council"
@@ -59,3 +60,7 @@ def get_user_data_dir() -> Path:
 
 def get_settings_path() -> Path:
     return get_user_data_dir() / SETTINGS_FILE_NAME
+
+
+def get_history_path() -> Path:
+    return get_user_data_dir() / HISTORY_FILE_NAME

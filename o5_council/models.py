@@ -52,3 +52,15 @@ class FinalRunResult:
     consensus_reached: bool
     final_majority_option: str
     synthesized_by: str
+
+
+@dataclass(slots=True)
+class HistoryRecord:
+    run_id: str
+    timestamp: str
+    task_mode: str
+    prompt_excerpt: str
+    consensus_reached: bool
+    final_majority_option: str
+    synthesized_by: str
+    final_markdown: str

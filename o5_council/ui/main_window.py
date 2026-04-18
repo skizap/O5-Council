@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +16,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QMessageBox,
     QPushButton,
@@ -29,7 +33,13 @@ from PySide6.QtWidgets import (
 )
 
 from o5_council.config import APP_TITLE, APP_VERSION, COMMON_OPENROUTER_MODELS
-from o5_council.models import FinalRunResult, MemberResponse, RoundSummary
+from o5_council.history_store import HistoryStore
+from o5_council.models import (
+    FinalRunResult,
+    HistoryRecord,
+    MemberResponse,
+    RoundSummary,
+)
 from o5_council.settings_store import SettingsStore
 from o5_council.workers import WorkerController
 
@@ -39,9 +49,11 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.settings_store = SettingsStore()
         self.settings_data = self.settings_store.load()
+        self.history_store = HistoryStore()
         self.worker_controller = WorkerController()
         self.current_result: FinalRunResult | None = None
         self.worker = None
+        self.active_history_record: HistoryRecord | None = None
 
         self.name_inputs: list[QLineEdit] = []
         self.role_inputs: list[QLineEdit] = []
@@ -53,6 +65,7 @@ class MainWindow(QMainWindow):
         self.resize(1480, 920)
         self._build_ui()
         self._load_settings_into_form()
+        self._refresh_history_list()
 
     def _build_ui(self) -> None:
         root = QWidget()
@@ -151,7 +164,9 @@ class MainWindow(QMainWindow):
 
         self.final_output = QTextBrowser()
         self.final_output.setOpenExternalLinks(True)
-        self.final_output.setMarkdown("# Final Synthesis\n\nThe council has not run yet.")
+        self.final_output.setMarkdown(
+            "# Final Synthesis\n\nThe council has not run yet."
+        )
 
         final_group = QGroupBox("Final Synthesis")
         final_layout = QVBoxLayout(final_group)
@@ -160,6 +175,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(activity_group, 1)
         layout.addWidget(transcript_group, 2)
         layout.addWidget(final_group, 2)
+        layout.addWidget(self._build_history_panel())
         return container
 
     def _build_api_box(self) -> QWidget:
@@ -314,9 +330,15 @@ class MainWindow(QMainWindow):
             member = council[index]
             self.name_inputs[index].setText(member.get("name", f"O5-{index + 1}"))
             self.role_inputs[index].setText(member.get("role", "Council Member"))
-            self.model_inputs[index].setCurrentText(member.get("model", "openai/gpt-4.1-mini"))
-            self.temperature_inputs[index].setValue(float(member.get("temperature", 0.7)))
-            self.transcript_tabs.setTabText(index, member.get("name", f"O5-{index + 1}"))
+            self.model_inputs[index].setCurrentText(
+                member.get("model", "openai/gpt-4.1-mini")
+            )
+            self.temperature_inputs[index].setValue(
+                float(member.get("temperature", 0.7))
+            )
+            self.transcript_tabs.setTabText(
+                index, member.get("name", f"O5-{index + 1}")
+            )
 
     def _collect_settings(self) -> dict[str, Any]:
         council = []
@@ -346,14 +368,21 @@ class MainWindow(QMainWindow):
         context = self.context_input.toPlainText().strip()
 
         if not settings["api_key"]:
-            QMessageBox.warning(self, "Missing API Key", "Please provide your OpenRouter API key before starting the council.")
+            QMessageBox.warning(
+                self,
+                "Missing API Key",
+                "Please provide your OpenRouter API key before starting the council.",
+            )
             return
         if not prompt:
-            QMessageBox.warning(self, "Missing Task", "Please enter a task for the council.")
+            QMessageBox.warning(
+                self, "Missing Task", "Please enter a task for the council."
+            )
             return
 
         self.settings_store.save(settings)
         self.current_result = None
+        self.active_history_record = None
         self.export_button.setEnabled(False)
         self.start_button.setEnabled(False)
         self.cancel_button.setEnabled(True)
@@ -375,23 +404,35 @@ class MainWindow(QMainWindow):
         self.worker.failed.connect(self.on_failed)
         self.worker.finished.connect(self.on_worker_finished)
 
-        self.summary_label.setText("The council is in session. Watch each member revise its position as consensus develops.")
+        self.summary_label.setText(
+            "The council is in session. Watch each member revise its position as consensus develops."
+        )
         self.statusBar().showMessage("Council run started.")
         self._append_log("Council run started.")
 
     def cancel_run(self) -> None:
         self.worker_controller.cancel()
-        self._append_log("Cancellation requested. The run will stop after the current request returns.")
+        self._append_log(
+            "Cancellation requested. The run will stop after the current request returns."
+        )
         self.statusBar().showMessage("Cancellation requested.")
 
     def clear_outputs(self) -> None:
         self.activity_box.clear()
         for index, transcript in enumerate(self.transcript_views):
-            transcript.setMarkdown(f"# {self.transcript_tabs.tabText(index)}\n\nAwaiting council output.")
-        self.final_output.setMarkdown("# Final Synthesis\n\nThe council has not run yet.")
+            transcript.setMarkdown(
+                f"# {self.transcript_tabs.tabText(index)}\n\nAwaiting council output."
+            )
+        self.final_output.setMarkdown(
+            "# Final Synthesis\n\nThe council has not run yet."
+        )
 
-    def export_markdown(self) -> None:
-        if self.current_result is None:
+def export_markdown(self) -> None:
+        if self.active_history_record is not None:
+            text = self.active_history_record.final_markdown
+        elif self.current_result is not None:
+            text = self.current_result.final_markdown
+        else:
             return
 
         default_name = "o5-council-report.md"
@@ -400,7 +441,7 @@ class MainWindow(QMainWindow):
             return
 
         path = Path(path_str)
-        path.write_text(self.current_result.final_markdown, encoding="utf-8")
+        path.write_text(text, encoding="utf-8")
         self.statusBar().showMessage(f"Exported report to {path}.")
         self._append_log(f"Exported final markdown to {path}.")
 
@@ -427,7 +468,10 @@ class MainWindow(QMainWindow):
             f"{reasoning_section}"
             f"## Response\n\n{response.content}\n\n"
             f"## Key Risks\n\n"
-            + ("\n".join(f"- {risk}" for risk in response.signal.key_risks) or "- No risks were explicitly listed.")
+            + (
+                "\n".join(f"- {risk}" for risk in response.signal.key_risks)
+                or "- No risks were explicitly listed."
+            )
         )
         self.transcript_views[index].setMarkdown(summary)
         self._append_log(
@@ -450,6 +494,7 @@ class MainWindow(QMainWindow):
     def on_completed(self, payload: dict[str, Any]) -> None:
         result: FinalRunResult = payload["result"]
         self.current_result = result
+        self.active_history_record = None
         self.final_output.setMarkdown(result.final_markdown)
         self.export_button.setEnabled(True)
         consensus_text = "reached" if result.consensus_reached else "not reached"
@@ -458,10 +503,26 @@ class MainWindow(QMainWindow):
         )
         self._append_log(f"Final synthesis completed by {result.synthesized_by}.")
         self.statusBar().showMessage("Council run completed.")
+        record = HistoryRecord(
+            run_id=str(uuid.uuid4()),
+            timestamp=datetime.datetime.now().isoformat(),
+            task_mode=result.task_mode,
+            prompt_excerpt=result.prompt[:120],
+            consensus_reached=result.consensus_reached,
+            final_majority_option=result.final_majority_option,
+            synthesized_by=result.synthesized_by,
+            final_markdown=result.final_markdown,
+        )
+        success = self.history_store.append(record)
+        self._refresh_history_list()
+        if not success:
+            self._append_log("Warning: failed to save run to history.")
 
     def on_failed(self, message: str) -> None:
         self._append_log(message)
-        self.summary_label.setText("The council run ended early. Review the activity log, adjust the settings, and try again.")
+        self.summary_label.setText(
+            "The council run ended early. Review the activity log, adjust the settings, and try again."
+        )
         self.statusBar().showMessage("Council run failed.")
         QMessageBox.warning(self, "Council Run", message)
 
@@ -472,6 +533,61 @@ class MainWindow(QMainWindow):
 
     def _append_log(self, message: str) -> None:
         self.activity_box.appendPlainText(message)
+
+    def _build_history_panel(self) -> QWidget:
+        box = QGroupBox("Run History")
+        layout = QVBoxLayout(box)
+
+        self.history_list = QListWidget()
+        self.history_list.setMaximumHeight(120)
+
+        button_layout = QHBoxLayout()
+        load_btn = QPushButton("Load Selected")
+        clear_btn = QPushButton("Clear History")
+        load_btn.clicked.connect(self._load_history_entry)
+        clear_btn.clicked.connect(self._clear_history)
+
+        button_layout.addWidget(load_btn)
+        button_layout.addWidget(clear_btn)
+
+        layout.addWidget(self.history_list)
+        layout.addLayout(button_layout)
+        return box
+
+    def _refresh_history_list(self) -> None:
+        self.history_list.clear()
+        records = self.history_store.load_all()
+        for record in reversed(records):
+            item = QListWidgetItem()
+            consensus = "✓" if record.consensus_reached else "✗"
+            text = f"{record.timestamp[:19]} [{record.task_mode}] {consensus} {record.prompt_excerpt}"
+            item.setText(text)
+            item.setData(Qt.UserRole, record.run_id)
+            self.history_list.addItem(item)
+
+def _load_history_entry(self) -> None:
+        current = self.history_list.currentItem()
+        if not current:
+            return
+        run_id = current.data(Qt.UserRole)
+        records = self.history_store.load_all()
+        for record in records:
+            if record.run_id == run_id:
+                self.active_history_record = record
+                self.final_output.setMarkdown(record.final_markdown)
+                self.export_button.setEnabled(True)
+                self.summary_label.setText(f"Viewing historical run from {record.timestamp}. Start a new council to overwrite.")
+                break
+
+def _clear_history(self) -> None:
+        reply = QMessageBox.question(self, "Clear History", "Remove all run history?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            success = self.history_store.clear()
+            self._refresh_history_list()
+            if success:
+                self._append_log("Run history cleared.")
+            else:
+                self._append_log("Warning: failed to clear run history.")
 
     def _member_index(self, agent_name: str) -> int:
         for index in range(self.transcript_tabs.count()):
