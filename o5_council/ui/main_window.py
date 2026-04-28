@@ -70,13 +70,15 @@ class MainWindow(QMainWindow):
     def _build_ui(self) -> None:
         root = QWidget()
         root_layout = QVBoxLayout(root)
-        root_layout.setContentsMargins(14, 14, 14, 14)
-        root_layout.setSpacing(12)
+        root_layout.setContentsMargins(12, 10, 12, 10)
+        root_layout.setSpacing(8)
 
         hero = self._build_hero()
         root_layout.addWidget(hero)
 
         splitter = QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(2)
+        splitter.setChildrenCollapsible(False)
         splitter.addWidget(self._build_left_panel())
         splitter.addWidget(self._build_right_panel())
         splitter.setStretchFactor(0, 2)
@@ -88,28 +90,39 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("Ready.")
 
     def _build_hero(self) -> QWidget:
-        box = QGroupBox("Mission Overview")
-        layout = QVBoxLayout(box)
+        banner = QWidget()
+        banner.setFixedHeight(56)
+        banner_layout = QHBoxLayout(banner)
+        banner_layout.setContentsMargins(8, 0, 8, 0)
+        banner_layout.setSpacing(12)
+
+        title_layout = QVBoxLayout()
+        title_layout.setSpacing(2)
+        title_layout.setContentsMargins(0, 0, 0, 0)
 
         title = QLabel("O5 Council")
-        title.setStyleSheet("font-size: 26px; font-weight: 700; color: #ffffff;")
+        title.setStyleSheet("font-size: 22px; font-weight: 700; color: #f0f6fc;")
 
         subtitle = QLabel(
-            "Coordinate five OpenRouter models, force critique-and-revision rounds, and export a final consensus report."
+            "Coordinate five OpenRouter models through structured deliberation."
         )
-        subtitle.setProperty("muted", True)
-        subtitle.setWordWrap(True)
+        subtitle.setStyleSheet("font-size: 12px; color: #8b9ab5;")
+
+        title_layout.addWidget(title)
+        title_layout.addWidget(subtitle)
 
         self.summary_label = QLabel(
             "Configure the council, submit a task, and inspect each member before accepting the final synthesis."
         )
         self.summary_label.setWordWrap(True)
-        self.summary_label.setStyleSheet("font-size: 14px; color: #dbe7f5;")
+        self.summary_label.setMaximumWidth(500)
+        self.summary_label.setStyleSheet("font-size: 12px; color: #8b9ab5;")
+        self.summary_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
-        layout.addWidget(self.summary_label)
-        return box
+        banner_layout.addLayout(title_layout, 1)
+        banner_layout.addStretch(1)
+        banner_layout.addWidget(self.summary_label, 0)
+        return banner
 
     def _build_left_panel(self) -> QWidget:
         container = QWidget()
@@ -121,8 +134,8 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         inner = QWidget()
         inner_layout = QVBoxLayout(inner)
-        inner_layout.setContentsMargins(0, 0, 0, 0)
-        inner_layout.setSpacing(12)
+        inner_layout.setContentsMargins(4, 4, 4, 4)
+        inner_layout.setSpacing(10)
 
         inner_layout.addWidget(self._build_api_box())
         inner_layout.addWidget(self._build_run_settings_box())
@@ -139,15 +152,17 @@ class MainWindow(QMainWindow):
         container = QWidget()
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(12)
+        layout.setSpacing(10)
 
         self.activity_box = QPlainTextEdit()
         self.activity_box.setReadOnly(True)
         self.activity_box.setPlaceholderText("Council activity will appear here.")
-        self.activity_box.setMinimumHeight(160)
 
         activity_group = QGroupBox("Live Activity")
+        activity_group.setMaximumHeight(180)
         activity_layout = QVBoxLayout(activity_group)
+        activity_layout.setContentsMargins(10, 14, 10, 10)
+        activity_layout.setSpacing(8)
         activity_layout.addWidget(self.activity_box)
 
         self.transcript_tabs = QTabWidget()
@@ -160,6 +175,8 @@ class MainWindow(QMainWindow):
 
         transcript_group = QGroupBox("Member Transcripts")
         transcript_layout = QVBoxLayout(transcript_group)
+        transcript_layout.setContentsMargins(10, 14, 10, 10)
+        transcript_layout.setSpacing(8)
         transcript_layout.addWidget(self.transcript_tabs)
 
         self.final_output = QTextBrowser()
@@ -170,10 +187,13 @@ class MainWindow(QMainWindow):
 
         final_group = QGroupBox("Final Synthesis")
         final_layout = QVBoxLayout(final_group)
+        final_layout.setContentsMargins(10, 14, 10, 10)
+        final_layout.setSpacing(8)
         final_layout.addWidget(self.final_output)
+        self.final_output.setStyleSheet("font-size: 14px;")
 
         layout.addWidget(activity_group, 1)
-        layout.addWidget(transcript_group, 2)
+        layout.addWidget(transcript_group, 3)
         layout.addWidget(final_group, 2)
         layout.addWidget(self._build_history_panel())
         return container
@@ -181,6 +201,9 @@ class MainWindow(QMainWindow):
     def _build_api_box(self) -> QWidget:
         box = QGroupBox("OpenRouter Connection")
         form = QFormLayout(box)
+        form.setContentsMargins(10, 14, 10, 10)
+        form.setHorizontalSpacing(8)
+        form.setVerticalSpacing(8)
 
         self.api_key_input = QLineEdit()
         self.api_key_input.setEchoMode(QLineEdit.Password)
@@ -200,6 +223,9 @@ class MainWindow(QMainWindow):
     def _build_run_settings_box(self) -> QWidget:
         box = QGroupBox("Deliberation Settings")
         form = QFormLayout(box)
+        form.setContentsMargins(10, 14, 10, 10)
+        form.setHorizontalSpacing(8)
+        form.setVerticalSpacing(8)
 
         self.task_mode_input = QComboBox()
         self.task_mode_input.setEditable(True)
@@ -233,6 +259,8 @@ class MainWindow(QMainWindow):
     def _build_council_box(self) -> QWidget:
         box = QGroupBox("Council Members")
         layout = QVBoxLayout(box)
+        layout.setContentsMargins(10, 14, 10, 10)
+        layout.setSpacing(8)
 
         note = QLabel(
             "Each member can use a different OpenRouter model and role prompt. Editable fields let you tune the council without changing code."
@@ -242,6 +270,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(note)
 
         grid = QGridLayout()
+        grid.setHorizontalSpacing(8)
+        grid.setVerticalSpacing(8)
         grid.addWidget(QLabel("Name"), 0, 0)
         grid.addWidget(QLabel("Role"), 0, 1)
         grid.addWidget(QLabel("Model"), 0, 2)
@@ -274,18 +304,20 @@ class MainWindow(QMainWindow):
     def _build_task_box(self) -> QWidget:
         box = QGroupBox("Task Composer")
         layout = QVBoxLayout(box)
+        layout.setContentsMargins(10, 14, 10, 10)
+        layout.setSpacing(8)
 
         self.prompt_input = QPlainTextEdit()
         self.prompt_input.setPlaceholderText(
             "Ask the council for a plan, research brief, strategy review, or policy recommendation."
         )
-        self.prompt_input.setMinimumHeight(170)
+        self.prompt_input.setMinimumHeight(140)
 
         self.context_input = QPlainTextEdit()
         self.context_input.setPlaceholderText(
             "Optional context, assumptions, constraints, stakeholders, or budget notes."
         )
-        self.context_input.setMinimumHeight(130)
+        self.context_input.setMinimumHeight(100)
 
         layout.addWidget(QLabel("Primary Task"))
         layout.addWidget(self.prompt_input)
@@ -296,13 +328,18 @@ class MainWindow(QMainWindow):
     def _build_action_box(self) -> QWidget:
         box = QGroupBox("Run Controls")
         layout = QHBoxLayout(box)
+        layout.setContentsMargins(10, 14, 10, 10)
+        layout.setSpacing(8)
 
         self.start_button = QPushButton("Start Council")
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setEnabled(False)
+        self.cancel_button.setProperty("secondary", True)
         self.export_button = QPushButton("Export Markdown")
         self.export_button.setEnabled(False)
+        self.export_button.setProperty("secondary", True)
         self.clear_button = QPushButton("Clear Output")
+        self.clear_button.setProperty("secondary", True)
 
         self.start_button.clicked.connect(self.start_run)
         self.cancel_button.clicked.connect(self.cancel_run)
@@ -385,6 +422,10 @@ class MainWindow(QMainWindow):
         self.active_history_record = None
         self.export_button.setEnabled(False)
         self.start_button.setEnabled(False)
+        self.start_button.setObjectName("startButton")
+        self.start_button.setProperty("running", True)
+        self.start_button.style().unpolish(self.start_button)
+        self.start_button.style().polish(self.start_button)
         self.cancel_button.setEnabled(True)
         self.clear_outputs()
 
@@ -427,7 +468,7 @@ class MainWindow(QMainWindow):
             "# Final Synthesis\n\nThe council has not run yet."
         )
 
-def export_markdown(self) -> None:
+    def export_markdown(self) -> None:
         if self.active_history_record is not None:
             text = self.active_history_record.final_markdown
         elif self.current_result is not None:
@@ -528,6 +569,9 @@ def export_markdown(self) -> None:
 
     def on_worker_finished(self) -> None:
         self.start_button.setEnabled(True)
+        self.start_button.setProperty("running", False)
+        self.start_button.style().unpolish(self.start_button)
+        self.start_button.style().polish(self.start_button)
         self.cancel_button.setEnabled(False)
         self.worker = None
 
@@ -537,6 +581,8 @@ def export_markdown(self) -> None:
     def _build_history_panel(self) -> QWidget:
         box = QGroupBox("Run History")
         layout = QVBoxLayout(box)
+        layout.setContentsMargins(10, 14, 10, 10)
+        layout.setSpacing(8)
 
         self.history_list = QListWidget()
         self.history_list.setMaximumHeight(120)
@@ -565,7 +611,7 @@ def export_markdown(self) -> None:
             item.setData(Qt.UserRole, record.run_id)
             self.history_list.addItem(item)
 
-def _load_history_entry(self) -> None:
+    def _load_history_entry(self) -> None:
         current = self.history_list.currentItem()
         if not current:
             return
@@ -579,7 +625,7 @@ def _load_history_entry(self) -> None:
                 self.summary_label.setText(f"Viewing historical run from {record.timestamp}. Start a new council to overwrite.")
                 break
 
-def _clear_history(self) -> None:
+    def _clear_history(self) -> None:
         reply = QMessageBox.question(self, "Clear History", "Remove all run history?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
             success = self.history_store.clear()
